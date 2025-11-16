@@ -9,6 +9,8 @@ namespace Infrastructure.Configurations
         
         public void Configure(EntityTypeBuilder<Category> builder)
         {
+            builder.ToTable("Categories");
+            
             builder.Property(c => c.Name)
                   .IsRequired()
                   .HasMaxLength(100);
