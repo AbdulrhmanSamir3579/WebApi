@@ -23,7 +23,6 @@ namespace Infrastructure.Configurations
                     .HasForeignKey(p => p.CategoryId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasBaseType<AuditableEntity>();
         }
     }
 }

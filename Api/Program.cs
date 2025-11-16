@@ -1,6 +1,7 @@
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 #region Configure Services

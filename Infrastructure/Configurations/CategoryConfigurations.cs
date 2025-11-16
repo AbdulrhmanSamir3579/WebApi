@@ -13,7 +13,6 @@ namespace Infrastructure.Configurations
                   .IsRequired()
                   .HasMaxLength(100);
 
-            builder.HasBaseType<AuditableEntity>();
         }
     }
 }
