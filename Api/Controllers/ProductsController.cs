@@ -1,4 +1,3 @@
-﻿using Application.Dtos;
 using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -44,22 +43,9 @@ public class ProductsController(IProductService productService) : BaseApiControl
 
     // POST: api/products
     [HttpPost]
-    public async Task<ActionResult<Product>> Create(ProductCreateDto dto)
     {
-        var productDto = new Product
-        {
-            Name = dto.Name,
-            Description = dto.Description,
-            Price = dto.Price,
-            ImageUrl = dto.ImageUrl,
-            BrandId = dto.BrandId,
-            CategoryId = dto.CategoryId
-        };
-
-        if (productDto == null)
             return BadRequest();
 
-        var createdProduct = await productService.AddAsync(productDto);
         return CreatedAtAction(nameof(GetById), new { id = createdProduct.Id }, createdProduct);
     }
 
