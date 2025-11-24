@@ -16,12 +16,12 @@ namespace Infrastructure.Configurations
             builder.Property(p => p.ImageUrl).HasMaxLength(500);
 
             builder.HasOne(p => p.Brand)
-                   .WithMany(b => b.Products)
+                   .WithMany()
                    .HasForeignKey(p => p.BrandId)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(p => p.Category)
-                    .WithMany(c => c.Products)
+                    .WithMany()
                     .HasForeignKey(p => p.CategoryId)
                     .OnDelete(DeleteBehavior.Restrict);
 

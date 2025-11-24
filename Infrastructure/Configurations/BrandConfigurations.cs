@@ -9,11 +9,11 @@ namespace Infrastructure.Configurations
         public void Configure(EntityTypeBuilder<Brand> builder)
         {
             builder.ToTable("Brands");
-            
-            builder.Property(b => b.Name)
-                   .IsRequired()
-                   .HasMaxLength(100);
 
+            builder.Property(b => b.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+            builder.HasIndex(c => c.Name).IsUnique();
         }
     }
 }
