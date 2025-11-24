@@ -3,40 +3,40 @@ using Domain.Interfaces;
 
 namespace Application.Services;
 
-public class ProductService : IProductService
+public class ProductService(IProductRepository repository) : IProductService
 {
-    public Task<IEnumerable<Product>> GetAllProductsAsync()
+    public async Task<IEnumerable<Product>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        return await repository.GetAllAsync();
     }
 
-    public Task<IEnumerable<Product>> GetAllProductsByCategoryAsync(int categoryId)
+    public async Task<IEnumerable<Product>> GetAllByCategoryAsync(int categoryId)
     {
-        throw new NotImplementedException();
+        return await repository.GetProductsByCategory(categoryId);
     }
 
-    public Task<IEnumerable<Product>> GetAllProductsByBrandAsync(int brandId)
+    public async Task<IEnumerable<Product>> GetAllByBrandAsync(int brandId)
     {
-        throw new NotImplementedException();
+        return await repository.GetProductsByBrandIdAsync(brandId);
     }
 
-    public Task<Product> GetProductByIdAsync(int productId)
+    public async Task<Product?> GetByIdAsync(int productId)
     {
-        throw new NotImplementedException();
+        return await repository.GetByIdAsync(productId);
     }
 
-    public Task<Product> AddProductAsync(Product product)
+    public async Task<Product> AddAsync(Product product)
     {
-        throw new NotImplementedException();
+        return await repository.AddAsync(product);
     }
 
-    public Task<bool> UpdateProductAsync(Product product)
+    public async Task<bool> UpdateProductAsync(Product product)
     {
-        throw new NotImplementedException();
+        return await repository.UpdateAsync(product);
     }
 
-    public Task<bool> DeleteProductAsync(int productId)
+    public async Task<bool> DeleteProductAsync(int productId)
     {
-        throw new NotImplementedException();
+        return await repository.DeleteAsync(productId);
     }
 }

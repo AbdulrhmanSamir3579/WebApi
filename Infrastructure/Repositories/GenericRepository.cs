@@ -8,7 +8,7 @@ namespace Infrastructure.Repositories;
 public class GenericRepository<T>(AppDbContext dbContext) : IGenericRepository<T>
     where T : BaseEntity
 {
-    private readonly DbSet<T> _dbSet = dbContext.Set<T>();
+    public readonly DbSet<T> _dbSet = dbContext.Set<T>();
 
     public async Task<IEnumerable<T>> GetAllAsync()
     {
