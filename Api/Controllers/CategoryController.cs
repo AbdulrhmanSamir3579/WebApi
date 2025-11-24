@@ -4,26 +4,26 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-public class CategoryController(ICategoryService categoryService) : BaseApiController
+public class CategoryController(IGenericService<Category> service) : BaseApiController
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Category>>> GetAllCategoriesAsync()
     {
-        var categories = await categoryService.GetAllCategoriesAsync();
+        var categories = await service.GetAllAsync();
         return Ok(categories);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Category>> GetCategoryAsync(int id)
     {
-        var category = await categoryService.GetCategoryAsync(id);
+        var category = await service.GetByIdAsync(id);
         return Ok(category);
     }
 
     [HttpPost]
     public async Task<ActionResult<Category>> CreateCategoryAsync(Category category)
     {
-        var createdCategory = await categoryService.CreateCategoryAsync(category);
+        var createdCategory = await service.CreateAsync(category);
         return Created();
     }
 
@@ -32,15 +32,15 @@ public class CategoryController(ICategoryService categoryService) : BaseApiContr
     {
         if (id != category.Id)
             return BadRequest();
-        
-        var updatedCategory = await categoryService.UpdateCategoryAsync(category);
+
+        var updatedCategory = await service.UpdateAsync(category);
         return Ok(updatedCategory);
     }
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteCategoryAsync(int id)
     {
-        await categoryService.DeleteCategoryAsync(id);
+        await service.DeleteAsync(id);
         return NoContent();
     }
 }
