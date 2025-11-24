@@ -1,6 +1,6 @@
 ﻿namespace Domain.Entities;
 
-public class Product : AuditableEntity
+public class Product : BaseEntity
 {
     public string Name { get; set; } = null!;
     public string Description { get; set; } = null!;
