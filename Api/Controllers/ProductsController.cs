@@ -1,6 +1,7 @@
 using Application.Dtos;
 using Domain.Entities;
 using Domain.Interfaces;
+using Domain.Specifications.Products;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -12,21 +13,8 @@ public class ProductsController(IProductService productService) : BaseApiControl
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Product>>> GetAll([FromQuery] int? categoryId, [FromQuery] int? brandId)
     {
-        IEnumerable<Product> products;
-
-        if (categoryId.HasValue)
-        {
-            products = await productService.GetAllByCategoryAsync(categoryId.Value);
-        }
-        else if (brandId.HasValue)
-        {
-            products = await productService.GetAllByBrandAsync(brandId.Value);
-        }
-        else
-        {
-            products = await productService.GetAllAsync();
-        }
-
+        ISpecifications<Product> specs = new ProductsWithCategoryAndBrandSpec(categoryId, brandId);
+        IEnumerable<Product> products = await productService.GetAllWithSpecificaitonsAsync(specs);
         return Ok(products);
     }
 
@@ -55,7 +43,7 @@ public class ProductsController(IProductService productService) : BaseApiControl
             BrandId = dto.BrandId,
             CategoryId = dto.CategoryId
         };
-        var createdProduct = await productService.AddAsync(productDto);
+        var createdProduct = await productService.CreateAsync(productDto);
         return Ok(createdProduct);
     }
 
@@ -67,7 +55,7 @@ public class ProductsController(IProductService productService) : BaseApiControl
         if (product == null || product.Id != id)
             return BadRequest();
 
-        var updated = await productService.UpdateProductAsync(product);
+        var updated = await productService.UpdateAsync(product);
 
         if (!updated)
             return NotFound(); // 404 if the product doesn't exist
@@ -79,7 +67,7 @@ public class ProductsController(IProductService productService) : BaseApiControl
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> Delete(int id)
     {
-        var deleted = await productService.DeleteProductAsync(id);
+        var deleted = await productService.DeleteAsync(id);
 
         if (!deleted)
             return NotFound();

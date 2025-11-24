@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Domain.Interfaces;
 using Infrastructure.Data;
+using Infrastructure.Specifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
@@ -8,16 +9,26 @@ namespace Infrastructure.Repositories;
 public class GenericRepository<T>(AppDbContext dbContext) : IGenericRepository<T>
     where T : BaseEntity
 {
-    public readonly DbSet<T> _dbSet = dbContext.Set<T>();
+    protected readonly DbSet<T> _dbSet = dbContext.Set<T>();
 
     public async Task<IEnumerable<T>> GetAllAsync()
     {
         return await _dbSet.AsNoTracking().ToListAsync();
     }
 
+    public async Task<IEnumerable<T>> GetAllWithSpecsAsync(ISpecifications<T> specifications)
+    {
+        return await ApplySpecifications(specifications).ToListAsync();
+    }
+
     public async Task<T?> GetByIdAsync(int id)
     {
         return await _dbSet.FindAsync(id);
+    }
+
+    public async Task<T?> GetByIdWithSpecsAsync(int id, ISpecifications<T> specifications)
+    {
+        return await ApplySpecifications(specifications).FirstOrDefaultAsync(e => e.Id == id);
     }
 
     public async Task<T> AddAsync(T entity)
@@ -48,5 +59,10 @@ public class GenericRepository<T>(AppDbContext dbContext) : IGenericRepository<T
     public async Task<int> SaveChangesAsync()
     {
         return await dbContext.SaveChangesAsync();
+    }
+
+    private IQueryable<T> ApplySpecifications(ISpecifications<T> specifications)
+    {
+        return SpecificationEvaluator<T>.GetQuery(_dbSet.AsQueryable(), specifications);
     }
 }

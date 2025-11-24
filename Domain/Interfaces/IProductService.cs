@@ -2,13 +2,6 @@
 
 namespace Domain.Interfaces;
 
-public interface IProductService 
+public interface IProductService : IGenericService<Product>
 {
-    public Task<IEnumerable<Product>> GetAllAsync();
-    public Task<IEnumerable<Product>> GetAllByCategoryAsync(int categoryId);
-    public Task<IEnumerable<Product>> GetAllByBrandAsync(int brandId);
-    public Task<Product?> GetByIdAsync(int productId);
-    public Task<Product> AddAsync(Product product);
-    public Task<bool> UpdateProductAsync(Product product);
-    public Task<bool> DeleteProductAsync(int productId);
 }

@@ -5,9 +5,9 @@ namespace Application.Services;
 
 public class GenericService<T>(IGenericRepository<T> repository) : IGenericService<T> where T : BaseEntity
 {
-    public Task<IEnumerable<T>> GetAllAsync()
+    public async Task<IEnumerable<T>> GetAllWithSpecificaitonsAsync(ISpecifications<T> specifications)
     {
-        return repository.GetAllAsync();
+        return await repository.GetAllWithSpecsAsync(specifications);
     }
 
     public async Task<T> GetByIdAsync(int entityId)
@@ -15,18 +15,33 @@ public class GenericService<T>(IGenericRepository<T> repository) : IGenericServi
         return await repository.GetByIdAsync(entityId);
     }
 
-    public Task<T> CreateAsync(T entity)
+    public async Task<IEnumerable<T>> GetAllAsync()
     {
-        return repository.AddAsync(entity);
+        return await repository.GetAllAsync();
     }
 
-    public Task<bool> UpdateAsync(T entity)
+    public async Task<T> GetByIdWithSpecificaitonsAsync(int entityId, ISpecifications<T> specifications)
     {
-        return repository.UpdateAsync(entity);
+        return await repository.GetByIdWithSpecsAsync(entityId, specifications);
     }
 
-    public Task<bool> DeleteAsync(int entityId)
+    public async Task<T> GetByIdWithSpecificationsAsync(int entityId, ISpecifications<T> specifications)
     {
-        return repository.DeleteAsync(entityId);
+        return await repository.GetByIdWithSpecsAsync(entityId, specifications);
+    }
+
+    public async Task<T> CreateAsync(T entity)
+    {
+        return await repository.AddAsync(entity);
+    }
+
+    public async Task<bool> UpdateAsync(T entity)
+    {
+        return await repository.UpdateAsync(entity);
+    }
+
+    public async Task<bool> DeleteAsync(int entityId)
+    {
+        return await repository.DeleteAsync(entityId);
     }
 }
