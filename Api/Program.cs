@@ -1,7 +1,10 @@
+using Api.Errors;
+using Api.Helpers;
 using Application.Services;
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -15,9 +18,30 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
 builder.Services.AddScoped<IProductRepository, ProductsRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfiles));
 builder.Services.AddDbContext<AppDbContext>(options
     => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(x => x.Value.Errors.Count > 0)
+            .SelectMany(x => x.Value.Errors)
+            .Select(x => x.ErrorMessage)
+            .ToArray();
+
+        // Return a proper IActionResult
+        return new BadRequestObjectResult(new ValidationErrorResponse()
+        {
+            Message = "Validation failed",
+            Errors = errors
+        });
+    };
+});
+
+
 
 #endregion
 
@@ -52,6 +76,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 app.Run();
 

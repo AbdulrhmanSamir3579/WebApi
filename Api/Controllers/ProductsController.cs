@@ -1,4 +1,7 @@
+using Api.Dtos.Products;
+using Api.Errors;
 using Application.Dtos;
+using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;
 using Domain.Specifications.Products;
@@ -6,28 +9,28 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-public class ProductsController(IProductService productService) : BaseApiController
+public class ProductsController(IProductService productService, IMapper mapper) : BaseApiController
 {
     // GET: api/products
     // Optional filters: ?categoryId=5&brandId=3
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Product>>> GetAll([FromQuery] int? categoryId, [FromQuery] int? brandId)
+    public async Task<ActionResult<IEnumerable<ProductSimpleReturnDto>>> GetAll([FromQuery] int? categoryId, [FromQuery] int? brandId)
     {
         ISpecifications<Product> specs = new ProductsWithCategoryAndBrandSpec(categoryId, brandId);
         IEnumerable<Product> products = await productService.GetAllWithSpecificaitonsAsync(specs);
-        return Ok(products);
+        return Ok(mapper.Map<IEnumerable<Product>,IEnumerable<ProductSimpleReturnDto>>(products));
     }
 
     // GET: api/products/5
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Product>> GetById(int id)
+    public async Task<ActionResult<ProductSimpleReturnDto>> GetById(int id)
     {
         var product = await productService.GetByIdAsync(id);
 
         if (product == null)
-            return NotFound();
+            return NotFound(new ApiResponse(404));
 
-        return Ok(product);
+        return Ok(mapper.Map<Product, ProductSimpleReturnDto>(product));
     }
 
     // POST: api/products
