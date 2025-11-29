@@ -1,8 +1,8 @@
 using Api.Dtos.Products;
-using Api.Errors;
 using Application.Dtos;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.Specifications.Products;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +14,13 @@ public class ProductsController(IProductService productService, IMapper mapper) 
     // GET: api/products
     // Optional filters: ?categoryId=5&brandId=3
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductSimpleReturnDto>>> GetAll([FromQuery] int? categoryId, [FromQuery] int? brandId)
+    public async Task<ActionResult<IEnumerable<ProductSimpleReturnDto>>> GetAll(
+        [FromQuery] int? categoryId, 
+        [FromQuery] int? brandId)
     {
         ISpecifications<Product> specs = new ProductsWithCategoryAndBrandSpec(categoryId, brandId);
         IEnumerable<Product> products = await productService.GetAllWithSpecificaitonsAsync(specs);
-        return Ok(mapper.Map<IEnumerable<Product>,IEnumerable<ProductSimpleReturnDto>>(products));
+        return Ok(mapper.Map<IEnumerable<Product>, IEnumerable<ProductSimpleReturnDto>>(products));
     }
 
     // GET: api/products/5
@@ -28,14 +30,14 @@ public class ProductsController(IProductService productService, IMapper mapper) 
         var product = await productService.GetByIdAsync(id);
 
         if (product == null)
-            return NotFound(new ApiResponse(404));
+            throw new NotFoundException("Product", id);
 
         return Ok(mapper.Map<Product, ProductSimpleReturnDto>(product));
     }
 
     // POST: api/products
     [HttpPost]
-    public async Task<ActionResult<Product>> Post([FromBody] ProductCreateDto dto)
+    public async Task<ActionResult<ProductSimpleReturnDto>> Post([FromBody] ProductCreateDto dto)
     {
         var productDto = new Product()
         {
@@ -46,10 +48,12 @@ public class ProductsController(IProductService productService, IMapper mapper) 
             BrandId = dto.BrandId,
             CategoryId = dto.CategoryId
         };
+        
         var createdProduct = await productService.CreateAsync(productDto);
-        return Ok(createdProduct);
+        var returnDto = mapper.Map<Product, ProductSimpleReturnDto>(createdProduct);
+        
+        return CreatedAtAction(nameof(GetById), new { id = createdProduct.Id }, returnDto);
     }
-
 
     // PUT: api/products/5
     [HttpPut("{id:int}")]
@@ -70,10 +74,12 @@ public class ProductsController(IProductService productService, IMapper mapper) 
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> Delete(int id)
     {
-        var deleted = await productService.DeleteAsync(id);
+        var product = await productService.GetByIdAsync(id);
+        
+        if (product == null)
+            throw new NotFoundException("Product", id);
 
-        if (!deleted)
-            return NotFound();
+        await productService.DeleteAsync(id);
 
         return NoContent();
     }

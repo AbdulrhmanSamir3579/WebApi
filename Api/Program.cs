@@ -1,12 +1,6 @@
-using Api.Errors;
-using Api.Helpers;
-using Application.Services;
-using Domain.Interfaces;
+using Api.Extensions;
 using Infrastructure.Data;
-using Infrastructure.Repositories;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,34 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
-builder.Services.AddScoped<IProductRepository, ProductsRepository>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfiles));
-builder.Services.AddDbContext<AppDbContext>(options
-    => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddApplicationService();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.Configure<ApiBehaviorOptions>(options =>
-{
-    options.InvalidModelStateResponseFactory = context =>
-    {
-        var errors = context.ModelState
-            .Where(x => x.Value.Errors.Count > 0)
-            .SelectMany(x => x.Value.Errors)
-            .Select(x => x.ErrorMessage)
-            .ToArray();
 
-        // Return a proper IActionResult
-        return new BadRequestObjectResult(new ValidationErrorResponse()
-        {
-            Message = "Validation failed",
-            Errors = errors
-        });
-    };
-});
-
-
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 #endregion
 
@@ -49,34 +20,48 @@ var app = builder.Build();
 
 #region Configure Database
 
-using var scope = app.Services.CreateScope();
-var servicesProvider = scope.ServiceProvider;
-var dbContext = servicesProvider.GetRequiredService<AppDbContext>();
-var loggerFactory = servicesProvider.GetRequiredService<ILoggerFactory>();
-try
+using (var scope = app.Services.CreateScope())
 {
-    await dbContext.Database.MigrateAsync();
-}
-catch (Exception e)
-{
-    loggerFactory.CreateLogger<Program>().LogError(e.Message);
-    throw;
+    var services = scope.ServiceProvider;
+    var dbContext = services.GetRequiredService<AppDbContext>();
+    var logger = services.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error while migrating database");
+        throw;
+    }
 }
 
 #endregion
 
 #region Configure the HTTP request pipeline
 
+// 🔥 1. Global exception middleware MUST be first
+app.UseApiExceptionHandling();
+
+// 2. Development tools
 if (app.Environment.IsDevelopment())
 {
-    app.MapControllers();
     app.MapOpenApi();
-    app.UseAuthentication();
-    app.UseAuthorization();
 }
 
+// 3. HTTPS redirection
 app.UseHttpsRedirection();
+
+// 4. Static files
 app.UseStaticFiles();
+
+// 5. Authentication & Authorization → should NOT be inside development block
+app.UseAuthentication();
+app.UseAuthorization();
+
+// 6. Routing
+app.MapControllers();
 
 app.Run();
 
